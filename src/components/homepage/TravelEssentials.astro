@@ -1,0 +1,71 @@
+---
+import Container from "../common/Container.astro";
+import ArticleCard from "../common/ArticleCard.astro";
+
+import {
+  getFeaturedImage,
+  getPostsByCategorySlug,
+  stripHtml,
+  truncateText,
+} from "../../lib/wordpress";
+
+const posts = await getPostsByCategorySlug(
+  "nepal-travel-essentials",
+  3,
+);
+---
+
+<section class="section travel-essentials">
+  <Container>
+    <div class="section-header">
+      <h2>Travel Essentials</h2>
+      <p>
+        Practical information to help you plan your Nepal journey with more confidence.
+      </p>
+    </div>
+
+    <div class="essentials-grid">
+      {
+        posts.map((post) => (
+          <ArticleCard
+            title={stripHtml(post.title.rendered)}
+            category="Travel Essentials"
+            excerpt={truncateText(
+              stripHtml(post.excerpt.rendered),
+              120,
+            )}
+            image={getFeaturedImage(post)}
+            href={`/${post.slug}`}
+          />
+        ))
+      }
+    </div>
+  </Container>
+</section>
+
+<style>
+  .travel-essentials {
+    background: var(--color-surface);
+  }
+
+  .section-header {
+    max-width: 720px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+
+  .section-header h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-header p {
+    color: var(--color-text-light);
+  }
+
+  .essentials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

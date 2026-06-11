@@ -1,0 +1,67 @@
+---
+import Container from "../common/Container.astro";
+import ArticleCard from "../common/ArticleCard.astro";
+
+import {
+  getFeaturedImage,
+  getPostsByCategorySlug,
+  stripHtml,
+  truncateText,
+} from "../../lib/wordpress";
+
+const posts = await getPostsByCategorySlug(
+  "things-to-do-in-nepal",
+  3,
+);
+---
+
+<section class="section">
+  <Container>
+    <div class="section-header">
+      <h2>Things To Do</h2>
+      <p>
+        Explore Nepal through experiences, culture, nature, food, festivals and adventure.
+      </p>
+    </div>
+
+    <div class="activity-grid">
+      {
+        posts.map((post) => (
+          <ArticleCard
+            title={stripHtml(post.title.rendered)}
+            category="Things To Do"
+            excerpt={truncateText(
+              stripHtml(post.excerpt.rendered),
+              120,
+            )}
+            image={getFeaturedImage(post)}
+            href={`/${post.slug}`}
+          />
+        ))
+      }
+    </div>
+  </Container>
+</section>
+
+<style>
+  .section-header {
+    max-width: 720px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+
+  .section-header h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-header p {
+    color: var(--color-text-light);
+  }
+
+  .activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

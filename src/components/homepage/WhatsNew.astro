@@ -1,0 +1,123 @@
+---
+import Container from "../common/Container.astro";
+import ArticleCard from "../common/ArticleCard.astro";
+
+import {
+  getFeaturedImage,
+  getLatestPosts,
+  getPrimaryCategory,
+  stripHtml,
+  truncateText,
+} from "../../lib/wordpress";
+
+interface ArticlePreview {
+  title: string;
+  category: string;
+  href: string;
+  excerpt?: string;
+  image?: string;
+}
+
+const fallbackArticles: ArticlePreview[] = [
+  {
+    title: "10 Places To Visit In Jhapa, Nepal",
+    category: "Places To Go",
+    href: "#",
+  },
+  {
+    title: "Sakela, Ubhauli & Udhauli: The Living Rhythm of Kirat Rai Culture",
+    category: "Culture & Festivals",
+    href: "#",
+  },
+  {
+    title: "Pokhara Travel Guide For First-Time Visitors",
+    category: "Places To Go",
+    href: "#",
+  },
+  {
+    title: "Best Time To Visit Nepal",
+    category: "Travel Essentials",
+    href: "#",
+  },
+];
+
+let articles: ArticlePreview[] = fallbackArticles;
+
+try {
+  const posts = await getLatestPosts(4);
+
+  articles = posts.map((post) => ({
+    title: stripHtml(post.title.rendered),
+    category: getPrimaryCategory(post),
+    excerpt: truncateText(
+      stripHtml(post.excerpt.rendered),
+      140
+    ),
+    image: getFeaturedImage(post),
+    href: `/${post.slug}`,
+  }));
+} catch (error) {
+  console.error("Using fallback articles:", error);
+}
+---
+
+<section class="section whats-new">
+  <Container>
+    <div class="section-header">
+      <span class="eyebrow">Latest from Sulav Yatra</span>
+      <h2>What’s New</h2>
+      <p>
+        Fresh travel guides, cultural stories and practical information to help
+        you explore Nepal better.
+      </p>
+    </div>
+
+    <div class="article-grid">
+      {
+        articles.map((article) => (
+          <ArticleCard
+            title={article.title}
+            category={article.category}
+            excerpt={article.excerpt}
+            image={article.image}
+            href={article.href}
+          />
+        ))
+      }
+    </div>
+  </Container>
+</section>
+
+<style>
+  .whats-new {
+    background: var(--color-surface);
+  }
+
+  .section-header {
+    max-width: 720px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    color: var(--color-secondary);
+    font-weight: 700;
+  }
+
+  .section-header h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-header p {
+    color: var(--color-text-light);
+  }
+
+  .article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

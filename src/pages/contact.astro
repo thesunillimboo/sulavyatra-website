@@ -1,0 +1,284 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import Container from "../components/common/Container.astro";
+---
+
+<MainLayout
+  title="Contact Sulav Yatra"
+  description="Contact Sulav Yatra for travel content, collaboration, contributor enquiries, travel partners and general questions."
+>
+  <main>
+    <section class="contact-hero">
+      <Container>
+        <div class="hero-content">
+          <span class="eyebrow">Contact Us</span>
+          <h1>Let’s Talk About Nepal Travel</h1>
+          <p>
+            Have a question, story, collaboration idea or local travel experience to share?
+            We’d love to hear from you.
+          </p>
+        </div>
+      </Container>
+    </section>
+
+    <section class="contact-section">
+      <Container>
+        <div class="contact-grid">
+          <div class="contact-card primary-card">
+            <span class="card-kicker">General Enquiries</span>
+            <h2>Reach Sulav Yatra</h2>
+            <p>
+              For general questions, editorial enquiries, collaboration ideas or anything related
+              to Sulav Yatra, email us directly.
+            </p>
+            <a class="email-link" href="mailto:mail@sulavyatra.com">mail@sulavyatra.com</a>
+          </div>
+
+          <div class="contact-card">
+            <span class="card-kicker">Contributors</span>
+            <h2>Share Your Story</h2>
+            <p>
+              Are you a writer, photographer, local explorer or someone with useful Nepal travel knowledge?
+              We are building space for authentic voices.
+            </p>
+            <a href="/contribute">Become a Contributor →</a>
+          </div>
+
+          <div class="contact-card">
+            <span class="card-kicker">Travel Partners</span>
+            <h2>Work With Us</h2>
+            <p>
+              Guides, homestays, local businesses, creators and activity providers can connect with us
+              as Sulav Yatra grows.
+            </p>
+            <a href="/travel-partners">Become a Travel Partner →</a>
+          </div>
+        </div>
+
+        <div class="social-panel">
+          <div>
+            <span class="card-kicker">Follow The Journey</span>
+            <h2>Connect With Sulav Yatra</h2>
+            <p>
+              Follow us for Nepal travel stories, guides, updates and future community opportunities.
+            </p>
+          </div>
+
+          <div class="social-links">
+            <a href="https://facebook.com/sulavyatra" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <a href="https://instagram.com/sulavyatra" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="https://youtube.com/@sulavyatra" target="_blank" rel="noopener noreferrer">YouTube</a>
+            <a href="https://x.com/sulavyatra" target="_blank" rel="noopener noreferrer">X</a>
+            <a href="https://linkedin.com/company/sulavyatra" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          </div>
+        </div>
+      </Container>
+    </section>
+  </main>
+</MainLayout>
+
+<style>
+  main {
+    background: #fffdf8;
+  }
+
+  .contact-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 0 4rem;
+    text-align: center;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(0, 113, 186, 0.18), transparent 30%),
+      radial-gradient(circle at 84% 20%, rgba(240, 125, 0, 0.14), transparent 32%),
+      linear-gradient(180deg, #fffdf8 0%, #f8fafc 100%);
+  }
+
+  .contact-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, transparent, black 18%, transparent 95%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .eyebrow,
+  .card-kicker {
+    display: inline-block;
+    color: var(--color-secondary);
+    font-size: 0.88rem;
+    font-weight: 900;
+  }
+
+  h1 {
+    margin: 1rem 0;
+    color: var(--color-primary);
+    font-size: clamp(3rem, 6vw, 5rem);
+    line-height: 1.03;
+    letter-spacing: -0.055em;
+  }
+
+  .hero-content p {
+    max-width: 720px;
+    margin: 0 auto;
+    color: var(--color-text-light);
+    font-size: 1.12rem;
+    line-height: 1.75;
+  }
+
+  .contact-section {
+    padding: 5rem 0 7rem;
+    background:
+      radial-gradient(circle at 10% 24%, rgba(0, 113, 186, 0.07), transparent 24%),
+      radial-gradient(circle at 92% 70%, rgba(240, 125, 0, 0.08), transparent 28%),
+      white;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .contact-card,
+  .social-panel {
+    padding: 2rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .contact-card:hover,
+  .social-panel:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.1);
+  }
+
+  .primary-card {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(240, 125, 0, 0.14), transparent 34%),
+      linear-gradient(135deg, var(--color-primary), #005f9c);
+    color: white;
+  }
+
+  .contact-card.primary-card .card-kicker {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .contact-card.primary-card h2 {
+    color: white;
+  }
+
+  .contact-card.primary-card p {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .contact-card.primary-card .email-link {
+    display: inline-flex;
+    margin-top: 0.5rem;
+    padding: 0.9rem 1rem;
+    border-radius: 999px;
+    background: white;
+    color: var(--color-primary);
+  }
+
+  .contact-card.primary-card .email-link:hover {
+    transform: translateY(-2px);
+    color: var(--color-primary);
+    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.22);
+  }
+
+  .contact-card h2,
+  .social-panel h2 {
+    margin: 0.85rem 0 1rem;
+    color: #102033;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+  }
+
+  .contact-card p,
+  .social-panel p {
+    margin-bottom: 1.35rem;
+    color: var(--color-text-light);
+    line-height: 1.75;
+  }
+
+  .contact-card a,
+  .social-links a {
+    color: var(--color-primary);
+    font-weight: 900;
+  }
+
+  .contact-card a,
+  .social-links a,
+  .primary-card .email-link {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .contact-card a:hover {
+    color: var(--color-secondary);
+  }
+
+  .social-links a:hover {
+    transform: translateY(-2px);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 12px 30px rgba(0, 113, 186, 0.18);
+  }
+
+  .social-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1.5rem;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.92));
+  }
+
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .social-links a {
+    display: inline-flex;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 113, 186, 0.18);
+    border-radius: 999px;
+    background: white;
+  }
+
+  @media (max-width: 980px) {
+    .contact-grid,
+    .social-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .social-links {
+      justify-content: flex-start;
+    }
+  }
+</style>

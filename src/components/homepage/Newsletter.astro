@@ -1,0 +1,111 @@
+---
+import Container from "../common/Container.astro";
+---
+
+<section class="section newsletter">
+  <Container>
+    <div class="newsletter-content">
+
+      <span class="eyebrow">Stay Connected</span>
+
+      <h2>
+        Get Nepal Travel Stories, Guides & Updates
+      </h2>
+
+      <p>
+        Join our growing community and receive travel inspiration,
+        destination guides, cultural stories, and practical travel tips
+        from across Nepal.
+      </p>
+
+      <form class="newsletter-form">
+        <input
+          type="email"
+          placeholder="Enter your email address"
+          aria-label="Email address"
+        />
+
+        <button type="submit">
+          Subscribe
+        </button>
+      </form>
+
+      <small>
+        No spam. Only useful travel content and occasional updates.
+      </small>
+
+    </div>
+  </Container>
+</section>
+
+<style>
+  .newsletter {
+    text-align: center;
+  }
+
+  .newsletter-content {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    color: var(--color-secondary);
+    font-weight: 700;
+  }
+
+  .newsletter h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .newsletter p {
+    color: var(--color-text-light);
+    margin-bottom: 2rem;
+  }
+
+  .newsletter-form {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .newsletter-form input {
+    min-width: 320px;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .newsletter-form button {
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  small {
+    color: var(--color-text-light);
+  }
+
+  @media (max-width: 640px) {
+    .newsletter-form {
+      flex-direction: column;
+    }
+
+    .newsletter-form input {
+      min-width: auto;
+      width: 100%;
+    }
+
+    .newsletter-form button {
+      width: 100%;
+    }
+  }
+</style>

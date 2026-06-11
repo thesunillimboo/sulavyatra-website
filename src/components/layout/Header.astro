@@ -1,0 +1,320 @@
+---
+import Container from "../common/Container.astro";
+---
+
+<header class="site-header">
+  <Container>
+    <div class="header-inner">
+      <a href="/" class="site-logo" aria-label="Sulav Yatra home">
+        <img
+          src="/images/branding/sulav-yatra-logo.svg"
+          alt="Sulav Yatra"
+          width="400"
+          height="100"
+          loading="eager"
+          decoding="async"
+        />
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/places-to-visit-in-nepal">Places To Go</a>
+        <a href="/things-to-do-in-nepal">Things To Do</a>
+        <a href="/nepal-travel-essentials">Travel Essentials</a>
+        <a href="/articles">Articles</a>
+        <a href="/contribute">Contribute</a>
+        <a href="/partner">Partners</a>
+      </nav>
+
+      <div class="header-actions" aria-label="Header actions and social links">
+        <a href="/search" class="header-icon-link" aria-label="Search Sulav Yatra articles">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Z" />
+            <path d="m16.2 16.2 4.3 4.3" />
+          </svg>
+        </a>
+
+        <a href="https://facebook.com/sulavyatra" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Sulav Yatra on Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v4h4v-4h3l1-4h-4V9c0-.7.3-1 1-1z" />
+          </svg>
+        </a>
+
+        <a href="https://instagram.com/sulavyatra" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Sulav Yatra on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="4" ry="4" />
+            <circle cx="12" cy="12" r="3.5" />
+            <circle cx="17.5" cy="6.5" r="1" />
+          </svg>
+        </a>
+
+        <a href="https://youtube.com/@sulavyatra" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Sulav Yatra on YouTube">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12c0 3.5-.3 5.4-.9 6.1-.6.7-2.1.9-8.1.9s-7.5-.2-8.1-.9C3.3 17.4 3 15.5 3 12s.3-5.4.9-6.1C4.5 5.2 6 5 12 5s7.5.2 8.1.9c.6.7.9 2.6.9 6.1z" />
+            <path d="M10 9l5 3-5 3z" />
+          </svg>
+        </a>
+
+        <a href="https://x.com/sulavyatra" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Sulav Yatra on X">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4l16 16" />
+            <path d="M20 4L4 20" />
+          </svg>
+        </a>
+
+        <a href="https://linkedin.com/company/sulavyatra" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Sulav Yatra on LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 9v10" />
+            <circle cx="5" cy="5" r="1.5" />
+            <path d="M10 19V9h4c2.5 0 4 1.5 4 4v6" />
+            <path d="M10 13c0-2.5 1.5-4 4-4" />
+          </svg>
+        </a>
+      </div>
+
+      <button
+        class="mobile-menu-button"
+        type="button"
+        aria-label="Open menu"
+        aria-expanded="false"
+        data-mobile-menu-button
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </Container>
+
+  <div class="mobile-menu" data-mobile-menu>
+    <Container>
+      <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="/places-to-visit-in-nepal">Places To Go</a>
+        <a href="/things-to-do-in-nepal">Things To Do</a>
+        <a href="/nepal-travel-essentials">Travel Essentials</a>
+        <a href="/articles">Articles</a>
+        <a href="/search" class="mobile-search-link">Search Articles</a>
+        <a href="/contribute">Become a Contributor</a>
+        <a href="/partner">Become a Travel Partner</a>
+      </nav>
+
+      <div class="mobile-socials" aria-label="Sulav Yatra social links">
+        <a href="https://facebook.com/sulavyatra" target="_blank" rel="noopener noreferrer" aria-label="Sulav Yatra on Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v4h4v-4h3l1-4h-4V9c0-.7.3-1 1-1z" /></svg>
+        </a>
+        <a href="https://instagram.com/sulavyatra" target="_blank" rel="noopener noreferrer" aria-label="Sulav Yatra on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" ry="4" /><circle cx="12" cy="12" r="3.5" /><circle cx="17.5" cy="6.5" r="1" /></svg>
+        </a>
+        <a href="https://youtube.com/@sulavyatra" target="_blank" rel="noopener noreferrer" aria-label="Sulav Yatra on YouTube">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12c0 3.5-.3 5.4-.9 6.1-.6.7-2.1.9-8.1.9s-7.5-.2-8.1-.9C3.3 17.4 3 15.5 3 12s.3-5.4.9-6.1C4.5 5.2 6 5 12 5s7.5.2 8.1.9c.6.7.9 2.6.9 6.1z" /><path d="M10 9l5 3-5 3z" /></svg>
+        </a>
+        <a href="https://x.com/sulavyatra" target="_blank" rel="noopener noreferrer" aria-label="Sulav Yatra on X">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16" /><path d="M20 4L4 20" /></svg>
+        </a>
+        <a href="https://linkedin.com/company/sulavyatra" target="_blank" rel="noopener noreferrer" aria-label="Sulav Yatra on LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v10" /><circle cx="5" cy="5" r="1.5" /><path d="M10 19V9h4c2.5 0 4 1.5 4 4v6" /><path d="M10 13c0-2.5 1.5-4 4-4" /></svg>
+        </a>
+      </div>
+    </Container>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 72px;
+    gap: 2rem;
+  }
+
+  .site-logo {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .site-logo img {
+    display: block;
+    height: 40px;
+    width: auto;
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex: 1;
+  }
+
+  .site-nav a {
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+  }
+
+  .site-nav a:hover {
+    color: var(--color-primary);
+  }
+
+  .header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+  }
+
+  .header-icon-link,
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    color: var(--color-text);
+    font-size: 0.86rem;
+    font-weight: 800;
+    transition: var(--transition-fast);
+  }
+
+  .header-icon-link svg,
+  .social-link svg,
+  .mobile-socials svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .header-icon-link svg {
+    stroke-width: 2.2;
+  }
+
+  .header-icon-link:hover,
+  .social-link:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+  }
+
+  .mobile-menu-button {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: white;
+    cursor: pointer;
+  }
+
+  .mobile-menu-button span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    margin: 4px auto;
+    border-radius: 999px;
+    background: var(--color-text);
+  }
+
+  .mobile-menu {
+    display: none;
+    border-top: 1px solid var(--color-border);
+    background: white;
+  }
+
+  .mobile-menu.is-open {
+    display: block;
+  }
+
+  .mobile-nav {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem 0 1.25rem;
+  }
+
+  .mobile-nav a {
+    padding: 0.85rem 0;
+    color: var(--color-text);
+    font-weight: 700;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .mobile-nav a:last-child {
+    border-bottom: 0;
+  }
+
+  .mobile-search-link {
+    color: var(--color-primary) !important;
+  }
+
+  .mobile-socials {
+    display: flex;
+    gap: 0.65rem;
+    padding: 0 0 1.25rem;
+  }
+
+  .mobile-socials a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-weight: 800;
+  }
+
+  .mobile-socials a:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 900px) {
+    .header-inner {
+      min-height: 64px;
+    }
+
+    .site-nav {
+      display: none;
+    }
+
+    .header-actions {
+      display: none;
+    }
+
+    .mobile-menu-button {
+      display: block;
+    }
+
+    .site-logo img {
+      height: 34px;
+    }
+  }
+</style>
+
+<script>
+  const menuButton = document.querySelector('[data-mobile-menu-button]');
+  const mobileMenu = document.querySelector('[data-mobile-menu]');
+
+  menuButton?.addEventListener('click', () => {
+    const isOpen = mobileMenu?.classList.toggle('is-open');
+    menuButton.setAttribute('aria-expanded', String(Boolean(isOpen)));
+  });
+</script>

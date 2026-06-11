@@ -1,17 +1,40 @@
 ---
-
+import MainLayout from "../layouts/MainLayout.astro";
+import Hero from "../components/homepage/Hero.astro";
+import PlacesToGo from "../components/homepage/PlacesToGo.astro";
+import WhySulavYatraExists from "../components/homepage/WhySulavYatraExists.astro";
+import WhatsNew from "../components/homepage/WhatsNew.astro";
+import ThingsToDo from "../components/homepage/ThingsToDo.astro";
+import TravelEssentials from "../components/homepage/TravelEssentials.astro";
+import JoinTheJourney from "../components/homepage/JoinTheJourney.astro";
+import Newsletter from "../components/homepage/Newsletter.astro";
+import ExploreNepal from "../components/homepage/ExploreNepal.astro";
+import FeaturedDestinations from "../components/homepage/FeaturedDestinations.astro";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout
+  title="Nepal Travel Guides, Destinations & Culture"
+  description="Explore Nepal with Sulav Yatra through practical travel guides, destination ideas, cultural stories, festivals, travel essentials and authentic local insights."
+  canonical="https://sulavyatra.com/"
+  image="/images/branding/sulav-yatra-social-share.webp"
+>
+  <Hero />
+
+<ExploreNepal />
+
+<FeaturedDestinations />
+
+<WhatsNew />
+
+<PlacesToGo />
+
+<ThingsToDo />
+
+<TravelEssentials />
+
+<WhySulavYatraExists />
+
+<JoinTheJourney />
+
+<Newsletter />
+</MainLayout>

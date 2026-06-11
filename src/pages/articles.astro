@@ -1,0 +1,149 @@
+
+
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import Container from "../components/common/Container.astro";
+import ArticleCard from "../components/common/ArticleCard.astro";
+import {
+  getAllPosts,
+  getFeaturedImage,
+  getPrimaryCategory,
+  stripHtml,
+  truncateText,
+} from "../lib/wordpress";
+
+const posts = await getAllPosts(24);
+---
+
+<MainLayout
+  title="Latest Nepal Travel Articles | Sulav Yatra"
+  description="Read the latest Nepal travel guides, destination stories, cultural articles and practical travel information from Sulav Yatra."
+>
+  <main>
+    <section class="articles-hero">
+      <Container>
+        <div class="articles-hero-content">
+          <span class="eyebrow">Sulav Yatra Articles</span>
+          <h1>Latest Nepal Travel Guides & Stories</h1>
+          <p>
+            Explore the newest travel guides, destination ideas, cultural stories
+            and practical information to help you plan Nepal with confidence.
+          </p>
+        </div>
+      </Container>
+    </section>
+
+    <section class="section articles-section">
+      <Container>
+        <div class="articles-toolbar">
+          <p>{posts.length} latest articles</p>
+          <a href="/search">Search all articles →</a>
+        </div>
+
+        <div class="articles-grid">
+          {
+            posts.map((post) => (
+              <ArticleCard
+                title={stripHtml(post.title.rendered)}
+                category={getPrimaryCategory(post)}
+                excerpt={truncateText(stripHtml(post.excerpt.rendered), 130)}
+                image={getFeaturedImage(post)}
+                href={`/${post.slug}`}
+              />
+            ))
+          }
+        </div>
+      </Container>
+    </section>
+  </main>
+</MainLayout>
+
+<style>
+  .articles-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 5rem 0 4rem;
+    text-align: center;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(0, 113, 186, 0.16), transparent 30%),
+      radial-gradient(circle at 84% 20%, rgba(240, 125, 0, 0.14), transparent 32%),
+      linear-gradient(180deg, #fffdf8 0%, #f8fafc 100%);
+  }
+
+  .articles-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, transparent, black 18%, transparent 95%);
+    pointer-events: none;
+  }
+
+  .articles-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--color-secondary);
+    font-weight: 800;
+  }
+
+  .articles-hero h1 {
+    margin-bottom: 1.2rem;
+    color: var(--color-primary);
+    font-size: clamp(2.6rem, 5.5vw, 4.8rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .articles-hero p {
+    max-width: 720px;
+    margin: 0 auto;
+    color: var(--color-text-light);
+    font-size: 1.12rem;
+    line-height: 1.75;
+  }
+
+  .articles-section {
+    background: white;
+  }
+
+  .articles-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .articles-toolbar p {
+    color: var(--color-text-light);
+    font-weight: 700;
+  }
+
+  .articles-toolbar a {
+    color: var(--color-primary);
+    font-weight: 800;
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .articles-toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

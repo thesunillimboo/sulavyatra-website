@@ -1,0 +1,1014 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import Container from "../components/common/Container.astro";
+import {
+  getAllPosts,
+  getFeaturedImage,
+  getPostBySlug,
+  getPrimaryCategory,
+  getRelatedPosts,
+  stripHtml,
+  truncateText,
+} from "../lib/wordpress";
+import { WORDPRESS_URL } from "../lib/config";
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+
+  return posts.map((post) => ({
+    params: {
+      slug: post.slug,
+    },
+  }));
+}
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/");
+}
+
+const post = await getPostBySlug(slug);
+
+if (!post) {
+  return Astro.redirect("/");
+}
+
+type RankMathSeo = {
+  found?: boolean;
+  seo?: {
+    seo_title?: string;
+    seo_description?: string;
+    focus_keyword?: string;
+    canonical_url?: string;
+    facebook_title?: string;
+    facebook_description?: string;
+    facebook_image?: string;
+    twitter_title?: string;
+    twitter_description?: string;
+    twitter_image?: string;
+  };
+};
+
+async function getRankMathSeo(postSlug: string): Promise<RankMathSeo | null> {
+  try {
+    const response = await fetch(
+  `${WORDPRESS_URL}/wp-json/sulav-yatra/v1/seo/${postSlug}`,
+);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+const rankMathResponse = await getRankMathSeo(post.slug);
+const rankMathSeo = rankMathResponse?.seo ?? {};
+
+const title = stripHtml(post.title.rendered);
+const description = stripHtml(post.excerpt?.rendered ?? "");
+const seoTitle = stripHtml(rankMathSeo.seo_title || "") || title;
+const seoDescription = stripHtml(rankMathSeo.seo_description || "") || description;
+const category = getPrimaryCategory(post);
+const categoryUrlMap: Record<string, string> = {
+  "Places To Go": "/places-to-visit-in-nepal",
+  "Places To Visit In Nepal": "/places-to-visit-in-nepal",
+  "Things To Do": "/things-to-do-in-nepal",
+  "Things To Do In Nepal": "/things-to-do-in-nepal",
+  "Travel Essentials": "/nepal-travel-essentials",
+  "Nepal Travel Essentials": "/nepal-travel-essentials",
+};
+
+const categoryUrl = categoryUrlMap[category] ?? "/articles";
+const categorySlug = post._embedded?.["wp:term"]?.[0]?.[0]?.slug ?? "";
+const featuredImage = getFeaturedImage(post);
+const author = post._embedded?.author?.[0];
+const authorName = author?.name || "Sulav Yatra";
+const authorBio =
+  stripHtml(author?.description || "") ||
+  "Sulav Yatra is a Nepal travel platform focused on practical guides, local stories, cultural insights and reliable travel information.";
+const authorAvatar = author?.avatar_urls?.["96"] || "";
+const authorSlug = author?.slug || "sulav-yatra";
+const authorUrl = `/author/${authorSlug}`;
+const authorInitials = authorName
+  .split(" ")
+  .map((part) => part[0])
+  .join("")
+  .slice(0, 2)
+  .toUpperCase();
+const publishedDate = new Date(post.date).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+const wordCount = stripHtml(post.content.rendered).split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 220));
+const relatedPosts = categorySlug
+  ? await getRelatedPosts(categorySlug, post.slug, 3)
+  : [];
+
+const canonicalUrl =
+  stripHtml(rankMathSeo.canonical_url || "") || `https://sulavyatra.com/${post.slug}`;
+const imageUrl = featuredImage || "https://sulavyatra.com/images/branding/sulav-yatra-social-share.webp";
+const socialImage =
+  stripHtml(rankMathSeo.facebook_image || rankMathSeo.twitter_image || "") || imageUrl;
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: seoTitle,
+  description: seoDescription,
+  image: socialImage,
+  datePublished: post.date,
+  dateModified: post.modified ?? post.date,
+  author: {
+    "@type": "Person",
+    name: authorName,
+    url: `https://sulavyatra.com${authorUrl}`,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Sulav Yatra",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://sulavyatra.com/images/branding/sulav-yatra-logo.svg",
+    },
+  },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonicalUrl,
+  },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sulavyatra.com/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: category,
+      item: `https://sulavyatra.com${categoryUrl}`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: title,
+      item: canonicalUrl,
+    },
+  ],
+};
+
+function createSlug(text: string) {
+  return stripHtml(text)
+    .toLowerCase()
+    .replace(/&amp;/g, "and")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+const tocItems: { id: string; text: string; level: number }[] = [];
+const usedIds = new Map<string, number>();
+
+const articleContent = post.content.rendered.replace(
+  /<h([2-3])([^>]*)>(.*?)<\/h\1>/gi,
+  (match, level, attributes, headingContent) => {
+    const text = stripHtml(headingContent);
+    const baseId = createSlug(text) || `section-${tocItems.length + 1}`;
+    const count = usedIds.get(baseId) ?? 0;
+    const id = count > 0 ? `${baseId}-${count + 1}` : baseId;
+
+    usedIds.set(baseId, count + 1);
+    tocItems.push({ id, text, level: Number(level) });
+
+    if (attributes.includes("id=")) {
+      return match;
+    }
+
+    return `<h${level}${attributes} id="${id}">${headingContent}</h${level}>`;
+  },
+);
+---
+
+<MainLayout
+  title={seoTitle}
+  description={seoDescription}
+  image={socialImage || undefined}
+  type="article"
+  canonical={canonicalUrl}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <article class="article-page">
+    <div class="mobile-reading-progress" aria-hidden="true">
+      <span data-mobile-reading-progress-bar></span>
+    </div>
+    <section class="article-hero">
+      <Container>
+        <div class="article-intro">
+          <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span>›</span>
+            <a href={categoryUrl}>{category}</a>
+            <span>›</span>
+            <span>{title}</span>
+          </nav>
+          <a class="article-category" href={`/search?q=${encodeURIComponent(category)}`}>
+            {category}
+          </a>
+
+          <h1 set:html={post.title.rendered} />
+
+          {description && <p class="article-excerpt">{description}</p>}
+
+          <div class="article-meta" aria-label="Article information">
+            <span>{publishedDate}</span>
+            <span>{readingTime} min read</span>
+            <span>{authorName}</span>
+          </div>
+        </div>
+      </Container>
+    </section>
+
+    {
+      featuredImage && (
+        <section class="article-cover-section" aria-label="Featured image">
+          <Container>
+            <div class="article-cover">
+              <img src={featuredImage} alt={title} />
+            </div>
+          </Container>
+        </section>
+      )
+    }
+
+    <section class="article-content-section">
+      <Container>
+        <div class="article-layout">
+          <aside class="article-sidebar" aria-label="Article navigation">
+            <div class="sidebar-card">
+              <span>Reading Guide</span>
+              <strong>{readingTime} min read</strong>
+              <div class="reading-progress" aria-label="Reading progress">
+                <span data-reading-progress-bar></span>
+              </div>
+              <small data-reading-progress-text>0% complete</small>
+              <p>
+                A Sulav Yatra guide created to help travellers explore Nepal with
+                more confidence.
+              </p>
+            </div>
+
+            {
+              tocItems.length > 0 && (
+                <nav class="toc-card" aria-label="Table of contents">
+                  <span>In this article</span>
+                  <ol>
+                    {tocItems.map((item) => (
+                      <li class={`toc-level-${item.level}`}>
+                        <a href={`#${item.id}`} data-toc-link={item.id}>{item.text}</a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              )
+            }
+          </aside>
+
+          <div class="article-main-column">
+            <div class="article-content" set:html={articleContent} />
+
+            <section class="article-author-box" aria-label={`About ${authorName}`}>
+              {
+                authorAvatar ? (
+                  <img class="author-avatar" src={authorAvatar} alt={authorName} loading="lazy" />
+                ) : (
+                  <div class="author-mark">{authorInitials}</div>
+                )
+              }
+
+              <div class="author-copy">
+                <span>Written by</span>
+                <h2>{authorName}</h2>
+                <p>{authorBio}</p>
+                <div class="author-actions">
+                  <a href={authorUrl}>View Author Profile</a>
+                  <a href="/why-sulav-yatra-exists">Why Sulav Yatra Exists</a>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </Container>
+    </section>
+
+    {
+      relatedPosts.length > 0 && (
+        <section class="related-articles-section">
+          <Container>
+            <div class="related-header">
+              <span>You May Also Like</span>
+              <h2>Related Articles</h2>
+              <p>
+                Continue exploring Nepal with more guides and stories from the
+                same travel category.
+              </p>
+            </div>
+
+            <div class="related-grid">
+              {relatedPosts.map((relatedPost) => (
+                <a class="related-card" href={`/${relatedPost.slug}`}>
+                  {getFeaturedImage(relatedPost) && (
+                    <img
+                      src={getFeaturedImage(relatedPost)}
+                      alt={stripHtml(relatedPost.title.rendered)}
+                      loading="lazy"
+                    />
+                  )}
+
+                  <div class="related-card-content">
+                    <span>{getPrimaryCategory(relatedPost)}</span>
+                    <h3>{stripHtml(relatedPost.title.rendered)}</h3>
+                    <p>
+                      {truncateText(stripHtml(relatedPost.excerpt.rendered), 110)}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )
+    }
+  </article>
+</MainLayout>
+
+<style>
+  .article-page {
+    background: #fffdf8;
+  }
+
+  .mobile-reading-progress {
+    display: none;
+  }
+
+  .mobile-reading-progress span {
+    display: block;
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    transition: width 0.15s ease;
+  }
+
+  .article-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 4.5rem 0 2.5rem;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(0, 113, 186, 0.14), transparent 30%),
+      radial-gradient(circle at 84% 20%, rgba(240, 125, 0, 0.12), transparent 32%),
+      linear-gradient(180deg, #fffdf8 0%, #f8fafc 100%);
+  }
+
+  .article-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, transparent, black 18%, transparent 95%);
+    pointer-events: none;
+  }
+
+  .article-intro {
+    position: relative;
+    z-index: 1;
+    max-width: 980px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+  }
+
+  .breadcrumbs a {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .breadcrumbs span:last-child {
+    max-width: 420px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-category {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(0, 113, 186, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  .article-intro h1 {
+    max-width: 980px;
+    margin: 0 auto 1.2rem;
+    color: #102033;
+    font-size: clamp(2.5rem, 5vw, 4.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.055em;
+  }
+
+  .article-excerpt {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    padding-left: 1.5rem;
+    border-left: 4px solid var(--color-secondary);
+    text-align: left;
+    font-size: 1.3rem;
+    line-height: 1.8;
+    font-style: italic;
+    color: #4b5563;
+  }
+
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .article-meta span {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .article-cover-section {
+    padding: 2.5rem 0 0;
+    background: white;
+  }
+
+  .article-cover {
+    overflow: hidden;
+    border-radius: 30px;
+    background: white;
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.14);
+  }
+
+  .article-cover img {
+    width: 100%;
+    max-height: 560px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .article-content-section {
+    padding: 4rem 0 5rem;
+    background: white;
+  }
+
+  .article-layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 820px);
+    gap: 3rem;
+    align-items: start;
+    justify-content: center;
+  }
+
+  .article-sidebar {
+    position: sticky;
+    top: 96px;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .sidebar-card,
+  .toc-card {
+    padding: 1.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 20px;
+    background: #f8fafc;
+  }
+
+  .sidebar-card span,
+  .toc-card span {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-secondary);
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .sidebar-card strong {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+  }
+
+  .sidebar-card p {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .reading-progress {
+    overflow: hidden;
+    width: 100%;
+    height: 8px;
+    margin: 0.85rem 0 0.45rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.22);
+  }
+
+  .reading-progress span {
+    display: block;
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    transition: width 0.15s ease;
+  }
+
+  .sidebar-card small {
+    display: block;
+    margin-bottom: 0.85rem;
+    color: var(--color-text-light);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .toc-card ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .toc-card li {
+    margin-top: 0.65rem;
+  }
+
+  .toc-card a {
+    display: block;
+    padding: 0.35rem 0.45rem;
+    border-radius: 10px;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    font-weight: 750;
+    line-height: 1.45;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .toc-card a:hover {
+    color: var(--color-primary);
+  }
+
+  .toc-card a.is-active {
+    background: rgba(0, 113, 186, 0.1);
+    color: var(--color-primary);
+    transform: translateX(2px);
+  }
+
+  .toc-card {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+  }
+
+  .toc-card::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .toc-card::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-card::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.55);
+  }
+
+  .toc-card a.is-active {
+    box-shadow: inset 3px 0 0 var(--color-primary);
+  }
+
+  .toc-level-3 {
+    padding-left: 0.85rem;
+  }
+
+  .article-main-column {
+    max-width: 820px;
+    min-width: 0;
+  }
+
+  .article-content {
+    max-width: 820px;
+    color: #1f2937;
+    font-size: 1.08rem;
+    line-height: 1.95;
+  }
+
+  .article-content :global(p) {
+    margin-bottom: 1.35rem;
+  }
+
+  .article-content :global(h2),
+  .article-content :global(h3) {
+    scroll-margin-top: 96px;
+  }
+
+  .article-content :global(h2) {
+    margin: 3rem 0 1rem;
+    color: #102033;
+    font-size: clamp(1.7rem, 3vw, 2.35rem);
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+  }
+
+  .article-content :global(h3) {
+    margin: 2.3rem 0 0.8rem;
+    color: #102033;
+    font-size: 1.45rem;
+    line-height: 1.3;
+  }
+
+  .article-content :global(img) {
+    max-width: 100%;
+    height: auto;
+    margin: 2rem 0;
+    border-radius: 20px;
+  }
+
+  .article-content :global(ul),
+  .article-content :global(ol) {
+    margin: 1.2rem 0 1.6rem 1.5rem;
+  }
+
+  .article-content :global(li) {
+    margin-bottom: 0.65rem;
+  }
+
+  .article-content :global(blockquote) {
+    margin: 2rem 0;
+    padding: 1.2rem 1.5rem;
+    border-left: 4px solid var(--color-secondary);
+    border-radius: 0 16px 16px 0;
+    background: #fff7ed;
+    color: #374151;
+    font-weight: 600;
+  }
+
+  .article-content :global(a) {
+    color: var(--color-primary);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .article-content :global(hr) {
+    margin: 2.25rem 0;
+    border: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.32);
+  }
+
+  .article-author-box {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+    margin: 4rem 0 0;
+    padding: 1.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(0, 113, 186, 0.1), transparent 30%),
+      radial-gradient(circle at 88% 18%, rgba(240, 125, 0, 0.1), transparent 32%),
+      linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 20px 70px rgba(15, 23, 42, 0.07);
+  }
+
+  .author-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--color-primary), #005f9c);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    box-shadow: 0 14px 34px rgba(0, 113, 186, 0.2);
+  }
+  .author-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow: 0 14px 34px rgba(0, 113, 186, 0.16);
+  }
+
+  .author-copy span {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+    color: var(--color-secondary);
+    font-size: 0.85rem;
+    font-weight: 900;
+  }
+
+  .author-copy h2 {
+    margin-bottom: 0.75rem;
+    color: #102033;
+    font-size: 1.45rem;
+    line-height: 1.25;
+    letter-spacing: -0.035em;
+  }
+
+  .author-copy p {
+    margin-bottom: 1.15rem;
+    color: var(--color-text-light);
+    font-size: 0.98rem;
+    line-height: 1.75;
+  }
+
+  .author-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .author-actions a {
+    display: inline-flex;
+    padding: 0.7rem 0.95rem;
+    border-radius: 999px;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 900;
+    background: white;
+    border: 1px solid rgba(0, 113, 186, 0.16);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  }
+
+  .author-actions a:hover {
+    transform: translateY(-2px);
+    color: var(--color-secondary);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .related-articles-section {
+    padding: 5rem 0;
+    background: #fffdf8;
+  }
+
+  .related-header {
+    max-width: 720px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+
+  .related-header span {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    color: var(--color-secondary);
+    font-weight: 800;
+  }
+
+  .related-header h2 {
+    margin-bottom: 1rem;
+    color: #102033;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.04em;
+  }
+
+  .related-header p {
+    color: var(--color-text-light);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .related-card {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 24px;
+    background: white;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .related-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.11);
+  }
+
+  .related-card img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    display: block;
+  }
+
+  .related-card-content {
+    padding: 1.35rem;
+  }
+
+  .related-card-content span {
+    display: inline-block;
+    margin-bottom: 0.65rem;
+    color: var(--color-secondary);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .related-card-content h3 {
+    margin-bottom: 0.75rem;
+    color: #102033;
+    font-size: 1.15rem;
+    line-height: 1.35;
+  }
+
+  .related-card-content p {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 980px) {
+    .mobile-reading-progress {
+      position: sticky;
+      top: 78px;
+      z-index: 50;
+      display: block;
+      width: 100%;
+      height: 4px;
+      background: rgba(148, 163, 184, 0.22);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+    .article-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .article-sidebar {
+      position: static;
+      order: -1;
+    }
+
+    .toc-card {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .article-hero {
+      padding: 3rem 0 2rem;
+    }
+
+    .mobile-reading-progress {
+      top: 72px;
+    }
+
+    .breadcrumbs {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .breadcrumbs span:last-child {
+      max-width: 240px;
+    }
+
+    .article-intro h1 {
+      font-size: clamp(2.2rem, 11vw, 3.2rem);
+    }
+
+    .article-cover {
+      border-radius: 20px;
+    }
+
+    .article-content {
+      font-size: 1rem;
+      line-height: 1.85;
+    }
+
+    .article-author-box {
+      grid-template-columns: 1fr;
+      padding: 1.4rem;
+    }
+
+    .author-mark {
+      width: 56px;
+      height: 56px;
+    }
+    .author-avatar {
+      width: 56px;
+      height: 56px;
+    }
+  }
+</style>
+<script>
+  const progressBar = document.querySelector('[data-reading-progress-bar]');
+  const mobileProgressBar = document.querySelector('[data-mobile-reading-progress-bar]');
+  const progressText = document.querySelector('[data-reading-progress-text]');
+  const articleContent = document.querySelector('.article-content');
+  const tocLinks = Array.from(document.querySelectorAll('[data-toc-link]'));
+  const headings = tocLinks
+    .map((link) => {
+      const id = link.getAttribute('data-toc-link');
+      const heading = id ? document.getElementById(id) : null;
+      return heading ? { id, heading, link } : null;
+    })
+    .filter(Boolean);
+
+  function updateReadingProgress() {
+    if (!articleContent) return;
+
+    const rect = articleContent.getBoundingClientRect();
+    const articleTop = window.scrollY + rect.top;
+    const articleHeight = articleContent.scrollHeight - window.innerHeight;
+    const progress = articleHeight > 0
+      ? Math.min(100, Math.max(0, ((window.scrollY - articleTop) / articleHeight) * 100))
+      : 0;
+
+    if (progressBar) {
+      progressBar.style.width = `${progress}%`;
+    }
+
+    if (mobileProgressBar) {
+      mobileProgressBar.style.width = `${progress}%`;
+    }
+
+    if (progressText) {
+      progressText.textContent = `${Math.round(progress)}% complete`;
+    }
+  }
+
+  function updateActiveTocLink() {
+    if (!headings.length) return;
+
+    let activeItem = headings[0];
+
+    for (const item of headings) {
+      const top = item.heading.getBoundingClientRect().top;
+
+      if (top <= 130) {
+        activeItem = item;
+      }
+    }
+
+    tocLinks.forEach((link) => link.classList.remove('is-active'));
+    activeItem.link.classList.add('is-active');
+  }
+
+  function updateArticleSidebar() {
+    updateReadingProgress();
+    updateActiveTocLink();
+  }
+
+  updateArticleSidebar();
+  window.addEventListener('scroll', updateArticleSidebar, { passive: true });
+  window.addEventListener('resize', updateArticleSidebar);
+</script>

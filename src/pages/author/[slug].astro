@@ -1,0 +1,572 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Container from '../../components/common/Container.astro';
+import { WORDPRESS_URL } from '../../lib/config';
+
+type Author = {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  website?: string;
+  avatar?: string;
+  posts_count?: string | number;
+  acf?: false | {
+    rich_author_bio?: string;
+    user_email?: string;
+    instagram_link?: string;
+    facebook_link?: string;
+    youtube_link?: string;
+    tiktok_link?: string;
+    author_role?: string;
+    location?: string;
+  };
+};
+
+type WordPressPost = {
+  id: number;
+  slug: string;
+  date: string;
+  title: {
+    rendered: string;
+  };
+  excerpt: {
+    rendered: string;
+  };
+  _embedded?: {
+    'wp:featuredmedia'?: Array<{
+      source_url?: string;
+      media_details?: {
+        sizes?: {
+          medium_large?: { source_url: string };
+          large?: { source_url: string };
+          medium?: { source_url: string };
+        };
+      };
+    }>;
+    'wp:term'?: Array<Array<{
+      name: string;
+      slug: string;
+    }>>;
+  };
+};
+
+
+function stripHtml(html = '') {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&hellip;/g, '...')
+    .replace(/&#8230;/g, '...')
+    .replace(/&#8217;/g, '’')
+    .replace(/&#8220;/g, '“')
+    .replace(/&#8221;/g, '”')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date));
+}
+
+function getFeaturedImage(post: WordPressPost) {
+  const media = post._embedded?.['wp:featuredmedia']?.[0];
+
+  return (
+    media?.media_details?.sizes?.medium_large?.source_url ||
+    media?.media_details?.sizes?.large?.source_url ||
+    media?.media_details?.sizes?.medium?.source_url ||
+    media?.source_url ||
+    '/images/branding/sulav-yatra-social-share.webp'
+  );
+}
+
+function getPrimaryCategory(post: WordPressPost) {
+  return post._embedded?.['wp:term']?.[0]?.[0]?.name || 'Travel Guide';
+}
+
+export async function getStaticPaths() {
+  const response = await fetch(
+    `${WORDPRESS_URL}/wp-json/sulav-yatra/v1/authors`
+  );
+  const authors: Author[] = await response.json();
+
+  return Promise.all(
+    authors.map(async (author) => {
+      const postsResponse = await fetch(
+        `${WORDPRESS_URL}/wp-json/wp/v2/posts?author=${author.id}&per_page=12&_embed`,
+      );
+      const posts: WordPressPost[] = postsResponse.ok ? await postsResponse.json() : [];
+
+      return {
+        params: {
+          slug: author.slug,
+        },
+        props: {
+          author,
+          posts,
+        },
+      };
+    }),
+  );
+}
+
+const { author, posts } = Astro.props as {
+  author: Author;
+  posts: WordPressPost[];
+};
+
+const acf = author.acf || {};
+const authorRole = acf.author_role || 'Sulav Yatra Author';
+const location = acf.location || '';
+const richBio = acf.rich_author_bio || author.description || '';
+const pageTitle = `${author.name} | Author | Sulav Yatra`;
+const pageDescription =
+  author.description || `Read Nepal travel guides and stories written by ${author.name} on Sulav Yatra.`;
+const postsCount = Number(author.posts_count || posts.length || 0);
+
+const socialLinks = [
+  { label: 'Website', url: author.website },
+  { label: 'Instagram', url: acf.instagram_link },
+  { label: 'Facebook', url: acf.facebook_link },
+  { label: 'YouTube', url: acf.youtube_link },
+  { label: 'TikTok', url: acf.tiktok_link },
+  { label: 'Email', url: acf.user_email ? `mailto:${acf.user_email}` : '' },
+].filter((item) => item.url);
+
+const authorSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: author.name,
+  description: pageDescription,
+  url: `https://sulavyatra.com/author/${author.slug}`,
+  image: author.avatar,
+  jobTitle: authorRole,
+  worksFor: {
+    '@type': 'Organization',
+    name: 'Sulav Yatra',
+    url: 'https://sulavyatra.com',
+  },
+  sameAs: socialLinks
+    .filter((item) => item.label !== 'Email')
+    .map((item) => item.url),
+};
+---
+
+<MainLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonical={`https://sulavyatra.com/author/${author.slug}`}
+  image={author.avatar || '/images/branding/sulav-yatra-social-share.webp'}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(authorSchema)} />
+
+  <main>
+    <section class="author-hero">
+      <Container>
+        <div class="author-hero-card">
+          <div class="avatar-wrap">
+            <img src={author.avatar} alt={author.name} class="author-avatar" />
+          </div>
+
+          <h1>{author.name}</h1>
+          <p class="author-role">{authorRole}</p>
+
+          {location && <p class="author-location">📍 {location}</p>}
+
+          {author.description && (
+            <p class="author-description">{author.description}</p>
+          )}
+
+          {socialLinks.length > 0 && (
+            <div class="social-links" aria-label={`${author.name} social links`}>
+              {socialLinks.map((item) => (
+                <a href={item.url} target={item.label === 'Email' ? undefined : '_blank'} rel={item.label === 'Email' ? undefined : 'noopener noreferrer'}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          )}
+
+          <div class="author-stats" aria-label="Author statistics">
+            <div>
+              <strong>{postsCount}</strong>
+              <span>{postsCount === 1 ? 'Published Article' : 'Published Articles'}</span>
+            </div>
+            <div>
+              <strong>Sulav Yatra</strong>
+              <span>Travel Platform</span>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </section>
+
+    {richBio && (
+      <section class="author-bio-section">
+        <Container>
+          <div class="bio-card">
+            <span class="section-kicker">About {author.name}</span>
+            <div class="author-bio" set:html={richBio} />
+          </div>
+        </Container>
+      </section>
+    )}
+
+    <section class="author-posts-section">
+      <Container>
+        <div class="section-header">
+          <span class="section-kicker">Articles by {author.name}</span>
+          <h2>Latest stories and guides</h2>
+        </div>
+
+        {posts.length > 0 ? (
+          <div class="posts-grid">
+            {posts.map((post) => (
+              <article class="post-card">
+                <a href={`/${post.slug}`} class="post-image-link">
+                  <img src={getFeaturedImage(post)} alt={stripHtml(post.title.rendered)} loading="lazy" />
+                </a>
+                <div class="post-content">
+                  <span class="post-category">{getPrimaryCategory(post)}</span>
+                  <h3>
+                    <a href={`/${post.slug}`} set:html={post.title.rendered} />
+                  </h3>
+                  <p>{stripHtml(post.excerpt.rendered)}</p>
+                  <div class="post-meta">
+                    <span>{formatDate(post.date)}</span>
+                    <a href={`/${post.slug}`}>Read More →</a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="empty-posts">
+            <p>No published articles found for this author yet.</p>
+          </div>
+        )}
+      </Container>
+    </section>
+  </main>
+</MainLayout>
+
+<style>
+  main {
+    background: #fffdf8;
+  }
+
+  .author-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 0 4.5rem;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(0, 113, 186, 0.18), transparent 30%),
+      radial-gradient(circle at 84% 20%, rgba(240, 125, 0, 0.14), transparent 32%),
+      linear-gradient(180deg, #fffdf8 0%, #f8fafc 100%);
+  }
+
+  .author-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, transparent, black 18%, transparent 95%);
+    pointer-events: none;
+  }
+
+  .author-hero-card {
+    position: relative;
+    z-index: 1;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 3rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 36px;
+    background: rgba(255, 255, 255, 0.88);
+    text-align: center;
+    box-shadow: 0 26px 90px rgba(15, 23, 42, 0.09);
+    backdrop-filter: blur(18px);
+  }
+
+  .avatar-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    margin: 0 auto 1.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(0, 113, 186, 0.2), rgba(240, 125, 0, 0.2));
+  }
+
+  .author-avatar {
+    width: 170px;
+    height: 170px;
+    border: 6px solid white;
+    border-radius: 999px;
+    object-fit: cover;
+    box-shadow: 0 22px 60px rgba(0, 113, 186, 0.18);
+  }
+
+  .eyebrow,
+  .section-kicker {
+    display: inline-block;
+    color: var(--color-secondary);
+    font-size: 0.88rem;
+    font-weight: 900;
+  }
+
+  .author-hero h1 {
+    margin: 0 0 0.55rem;
+    color: var(--color-primary);
+    font-size: clamp(3rem, 6vw, 5.1rem);
+    line-height: 1.02;
+    letter-spacing: -0.06em;
+  }
+
+  .author-role {
+    margin-bottom: 0.45rem;
+    color: #102033;
+    font-size: 1.25rem;
+    font-weight: 900;
+  }
+
+  .author-location {
+    margin-bottom: 1.25rem;
+    color: var(--color-text-light);
+    font-weight: 800;
+  }
+
+  .author-description {
+    max-width: 720px;
+    margin: 0 auto 1.5rem;
+    color: #334155;
+    font-size: 1.04rem;
+    line-height: 1.8;
+  }
+
+  .social-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .social-links a {
+    display: inline-flex;
+    padding: 0.72rem 1rem;
+    border: 1px solid rgba(0, 113, 186, 0.16);
+    border-radius: 999px;
+    background: white;
+    color: var(--color-primary);
+    font-size: 0.92rem;
+    font-weight: 900;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .social-links a:hover {
+    transform: translateY(-2px);
+    color: var(--color-secondary);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  }
+
+  .author-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: 520px;
+    margin: 2rem auto 0;
+  }
+
+  .author-stats div {
+    padding: 1.1rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .author-stats strong,
+  .author-stats span {
+    display: block;
+  }
+
+  .author-stats strong {
+    color: #102033;
+    font-size: 1.15rem;
+  }
+
+  .author-stats span {
+    margin-top: 0.25rem;
+    color: var(--color-text-light);
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .author-bio-section,
+  .author-posts-section {
+    padding: 5rem 0;
+  }
+
+  .author-bio-section {
+    background: white;
+  }
+
+  .bio-card {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 3rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 32px;
+    background:
+      radial-gradient(circle at 12% 16%, rgba(0, 113, 186, 0.08), transparent 30%),
+      linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 22px 76px rgba(15, 23, 42, 0.07);
+  }
+
+  .author-bio {
+    margin-top: 1.4rem;
+    color: #263241;
+    font-size: 1.07rem;
+    line-height: 1.9;
+  }
+
+  .author-bio :global(p) {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-header {
+    max-width: 840px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .section-header h2 {
+    margin-top: 0.85rem;
+    color: #102033;
+    font-size: clamp(2.1rem, 4vw, 3.1rem);
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+
+  .post-card {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 26px;
+    background: white;
+    box-shadow: 0 18px 58px rgba(15, 23, 42, 0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.11);
+  }
+
+  .post-image-link img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    display: block;
+  }
+
+  .post-content {
+    padding: 1.35rem;
+  }
+
+  .post-category {
+    display: inline-block;
+    margin-bottom: 0.65rem;
+    color: var(--color-secondary);
+    font-size: 0.8rem;
+    font-weight: 900;
+  }
+
+  .post-content h3 {
+    margin-bottom: 0.75rem;
+    color: #102033;
+    font-size: 1.12rem;
+    line-height: 1.35;
+  }
+
+  .post-content p {
+    margin-bottom: 1.15rem;
+    color: var(--color-text-light);
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-text-light);
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .post-meta a {
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+
+  .empty-posts {
+    max-width: 720px;
+    margin: 2rem auto 0;
+    padding: 2rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 24px;
+    background: white;
+    text-align: center;
+  }
+
+  @media (max-width: 980px) {
+    .posts-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .author-hero {
+      padding: 4rem 0 3rem;
+    }
+
+    .author-hero-card,
+    .bio-card {
+      padding: 1.5rem;
+    }
+
+    .author-avatar {
+      width: 132px;
+      height: 132px;
+      border-width: 5px;
+    }
+
+    .author-stats,
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .post-meta {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

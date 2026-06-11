@@ -1,0 +1,88 @@
+<svg width="1200" height="260" viewBox="0 0 1200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Ground Line -->
+  <path
+    d="M0 220H1200"
+    stroke="#0071BA"
+    stroke-width="2"
+    opacity="0.15"
+  />
+
+  <!-- Boudhanath Stupa -->
+  <path
+    d="M520 220V165
+       M490 165H550
+       M500 145H540
+       M510 125H530
+       M520 105V125"
+    stroke="#0071BA"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.45"
+  />
+
+  <!-- Prayer Flags -->
+  <path
+    d="M520 105C560 90 620 85 670 100"
+    stroke="#F07D00"
+    stroke-width="2"
+    opacity="0.35"
+  />
+
+  <!-- Temple 1 -->
+  <path
+    d="M180 220V165
+       M145 165H215
+       M160 145H200
+       M170 125H190
+       M180 110V125"
+    stroke="#0071BA"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.45"
+  />
+
+  <!-- Temple 2 -->
+  <path
+    d="M980 220V170
+       M945 170H1015
+       M960 150H1000
+       M970 130H990
+       M980 115V130"
+    stroke="#0071BA"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.45"
+  />
+
+  <!-- Swayambhunath Inspired Dome -->
+  <path
+    d="M760 220
+       C760 180 820 180 820 220"
+    stroke="#F07D00"
+    stroke-width="3"
+    opacity="0.35"
+  />
+
+  <path
+    d="M790 180V145"
+    stroke="#0071BA"
+    stroke-width="3"
+    opacity="0.45"
+  />
+
+  <!-- Decorative Skyline Line -->
+  <path
+    d="M0 205
+       C140 195 260 215 400 200
+       C560 185 720 215 880 198
+       C1020 185 1120 205 1200 195"
+    stroke="#0071BA"
+    stroke-width="2"
+    opacity="0.12"
+  />
+
+</svg>

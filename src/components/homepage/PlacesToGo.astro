@@ -1,0 +1,67 @@
+---
+import Container from "../common/Container.astro";
+import ArticleCard from "../common/ArticleCard.astro";
+
+import {
+  getFeaturedImage,
+  getPostsByCategorySlug,
+  stripHtml,
+  truncateText,
+} from "../../lib/wordpress";
+
+const posts = await getPostsByCategorySlug(
+  "places-to-visit-in-nepal",
+  3,
+);
+---
+
+<section class="section">
+  <Container>
+    <div class="section-header">
+      <h2>Places To Go</h2>
+      <p>
+        Discover Nepal's destinations through trusted travel guides and local
+        knowledge.
+      </p>
+    </div>
+
+    <div class="destination-grid">
+      {
+        posts.map((post) => (
+          <ArticleCard
+            title={stripHtml(post.title.rendered)}
+            category="Places To Go"
+            excerpt={truncateText(
+              stripHtml(post.excerpt.rendered),
+              120,
+            )}
+            image={getFeaturedImage(post)}
+            href={`/${post.slug}`}
+          />
+        ))
+      }
+    </div>
+  </Container>
+</section>
+
+<style>
+  .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .section-header h2 {
+    margin-bottom: 0.75rem;
+    font-size: 2rem;
+  }
+
+  .section-header p {
+    color: var(--color-text-light);
+  }
+
+  .destination-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

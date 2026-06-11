@@ -1,0 +1,249 @@
+---
+import Container from "../common/Container.astro";
+---
+
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+
+  <Container>
+    <div class="hero-content">
+      <span class="hero-badge">
+        🇳🇵 Explore Nepal, Smarter
+      </span>
+
+      <h1>
+        Your Trusted
+        <span>Nepal Travel Guide</span>
+      </h1>
+
+      <p>
+        Discover destinations, cultural experiences, travel essentials and practical
+        Nepal travel information — all in one clear, reliable guide.
+      </p>
+
+      <p class="hero-trust-line">
+        Built for travellers who want honest guidance, local insight and easier Nepal planning.
+      </p>
+
+      <form class="hero-search" method="GET" action="/search">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search Pokhara, Mustang, festivals, travel tips..."
+          aria-label="Search Sulav Yatra articles"
+        />
+
+        <button type="submit">
+          Search
+        </button>
+      </form>
+
+      <div class="hero-links" aria-label="Popular travel sections">
+        <a href="/places-to-visit-in-nepal/">Places To Go</a>
+        <a href="/things-to-do-in-nepal/">Things To Do</a>
+        <a href="/nepal-travel-essentials/">Travel Essentials</a>
+        <a href="/search">Search Articles</a>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    padding: 7rem 0 6.5rem;
+    text-align: center;
+    background: #fffdf8;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 78%, transparent);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 248, 0.5) 0%, rgba(255, 253, 248, 0.26) 42%, rgba(255, 253, 248, 0.68) 100%),
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.64) 82%);
+    pointer-events: none;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-image: url("/images/hero/sulav-yatra-hero-bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center bottom;
+    opacity: 0.92;
+    pointer-events: none;
+    transform: translateZ(0);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 1.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(0, 113, 186, 0.24);
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(0, 113, 186, 0.08));
+    color: var(--color-primary);
+    font-size: 0.92rem;
+    font-weight: 800;
+    box-shadow: 0 12px 34px rgba(0, 113, 186, 0.1);
+    backdrop-filter: blur(12px);
+  }
+
+  h1 {
+    max-width: 960px;
+    margin: 0 auto 1.4rem;
+    font-size: clamp(2.6rem, 5.5vw, 4.8rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+    color: var(--color-primary);
+  }
+
+  h1 span {
+    color: var(--color-secondary);
+    display: inline-block;
+  }
+
+  p {
+    max-width: 720px;
+    margin: 0 auto 1rem;
+    color: var(--color-text-light);
+    font-size: 1.18rem;
+    line-height: 1.75;
+  }
+
+  .hero-trust-line {
+    max-width: 660px;
+    margin: 0 auto 2.2rem;
+    color: var(--color-text-light);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .hero-search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 760px;
+    margin: 0 auto 1.4rem;
+    padding: 0.45rem;
+    border: 1px solid rgba(0, 113, 186, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 28px 90px rgba(0, 113, 186, 0.14), 0 14px 44px rgba(240, 125, 0, 0.08);
+    backdrop-filter: blur(16px);
+  }
+
+  .hero-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 1.05rem 1.15rem;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+
+  .hero-search button {
+    border: 0;
+    padding: 1.05rem 1.65rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--color-primary), #005f9c);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--transition-fast);
+  }
+
+  .hero-search button:hover {
+    background: linear-gradient(135deg, #005f9c, var(--color-primary));
+    transform: translateY(-1px);
+  }
+
+  .hero-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-links a {
+    padding: 0.65rem 1rem;
+    border: 1px solid rgba(0, 113, 186, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    color: var(--color-text);
+    font-weight: 700;
+    backdrop-filter: blur(12px);
+    transition: var(--transition-fast);
+  }
+
+  .hero-links a:hover {
+    border-color: var(--color-primary);
+    color: var(--color-secondary);
+  }
+
+  @media (max-width: 760px) {
+    .hero {
+      min-height: auto;
+      padding: 5rem 0 5.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2.35rem, 11vw, 3.5rem);
+      letter-spacing: -0.045em;
+    }
+
+    p {
+      font-size: 1.05rem;
+    }
+
+    .hero-search {
+      flex-direction: column;
+      align-items: stretch;
+      border-radius: 24px;
+      padding: 0.75rem;
+    }
+
+    .hero-search button {
+      width: 100%;
+    }
+
+    .hero-bg {
+      opacity: 0.62;
+      background-position: center top;
+    }
+  }
+</style>

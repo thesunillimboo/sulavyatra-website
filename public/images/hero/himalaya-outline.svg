@@ -1,0 +1,27 @@
+<svg width="1200" height="260" viewBox="0 0 1200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M0 210L95 150L150 178L260 80L345 158L430 55L520 150L610 92L690 160L790 70L885 155L960 115L1045 168L1125 128L1200 190"
+    stroke="#0071BA"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.45"
+  />
+
+  <path
+    d="M260 80L300 150L345 158M430 55L468 142L520 150M790 70L830 145L885 155"
+    stroke="#F07D00"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.35"
+  />
+
+  <path
+    d="M0 225C180 200 330 230 500 210C690 188 820 220 1000 205C1090 198 1150 210 1200 202"
+    stroke="#0071BA"
+    stroke-width="2"
+    stroke-linecap="round"
+    opacity="0.18"
+  />
+</svg>
