@@ -129,6 +129,9 @@ const pageTitle = `${author.name} | Author | Sulav Yatra`;
 const pageDescription =
   author.description || `Read Nepal travel guides and stories written by ${author.name} on Sulav Yatra.`;
 const postsCount = Number(author.posts_count || posts.length || 0);
+const authorAvatar =
+  author.avatar?.replace("https://sulavyatra.com", WORDPRESS_URL) ||
+  "/images/branding/sulav-yatra-social-share.webp";
 
 const socialLinks = [
   { label: 'Website', url: author.website },
@@ -145,7 +148,7 @@ const authorSchema = {
   name: author.name,
   description: pageDescription,
   url: `https://sulavyatra.com/author/${author.slug}`,
-  image: author.avatar,
+  image: authorAvatar,
   jobTitle: authorRole,
   worksFor: {
     '@type': 'Organization',
@@ -162,7 +165,7 @@ const authorSchema = {
   title={pageTitle}
   description={pageDescription}
   canonical={`https://sulavyatra.com/author/${author.slug}`}
-  image={author.avatar || '/images/branding/sulav-yatra-social-share.webp'}
+  image={authorAvatar || '/images/branding/sulav-yatra-social-share.webp'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(authorSchema)} />
 
@@ -171,7 +174,7 @@ const authorSchema = {
       <Container>
         <div class="author-hero-card">
           <div class="avatar-wrap">
-            <img src={author.avatar} alt={author.name} class="author-avatar" />
+            <img src={authorAvatar} alt={author.name} class="author-avatar" />
           </div>
 
           <h1>{author.name}</h1>

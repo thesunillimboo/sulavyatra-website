@@ -91,7 +91,11 @@ const authorName = author?.name || "Sulav Yatra";
 const authorBio =
   stripHtml(author?.description || "") ||
   "Sulav Yatra is a Nepal travel platform focused on practical guides, local stories, cultural insights and reliable travel information.";
-const authorAvatar = author?.avatar_urls?.["96"] || "";
+const authorAvatar =
+  author?.avatar_urls?.["96"]?.replace(
+    "https://sulavyatra.com",
+    WORDPRESS_URL
+  ) || "";
 const authorSlug = author?.slug || "sulav-yatra";
 const authorUrl = `/author/${authorSlug}`;
 const authorInitials = authorName
