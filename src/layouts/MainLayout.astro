@@ -10,6 +10,12 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
   type?: "website" | "article";
   canonical?: string;
 }
@@ -24,13 +30,34 @@ const {
   title = defaultTitle,
   description = defaultDescription,
   image = defaultImage,
+  ogTitle,
+  ogDescription,
+  ogImage,
+  twitterTitle,
+  twitterDescription,
+  twitterImage,
   type = "website",
   canonical,
 } = Astro.props;
 
 const pageTitle = title === defaultTitle ? title : `${title} | Sulav Yatra`;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
-const imageUrl = image.startsWith("http") ? image : new URL(image, siteUrl).toString();
+
+const resolvedImage = ogImage || image;
+const resolvedTwitterImage = twitterImage || resolvedImage;
+
+const imageUrl = resolvedImage.startsWith("http")
+  ? resolvedImage
+  : new URL(resolvedImage, siteUrl).toString();
+
+const twitterImageUrl = resolvedTwitterImage.startsWith("http")
+  ? resolvedTwitterImage
+  : new URL(resolvedTwitterImage, siteUrl).toString();
+
+const metaOgTitle = ogTitle || pageTitle;
+const metaOgDescription = ogDescription || description;
+const metaTwitterTitle = twitterTitle || metaOgTitle;
+const metaTwitterDescription = twitterDescription || metaOgDescription;
 ---
 
 <!doctype html>
@@ -46,16 +73,16 @@ const imageUrl = image.startsWith("http") ? image : new URL(image, siteUrl).toSt
     <!-- Open Graph -->
     <meta property="og:site_name" content="Sulav Yatra" />
     <meta property="og:type" content={type} />
-    <meta property="og:title" content={pageTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={metaOgTitle} />
+    <meta property="og:description" content={metaOgDescription} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={imageUrl} />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={pageTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:title" content={metaTwitterTitle} />
+    <meta name="twitter:description" content={metaTwitterDescription} />
+    <meta name="twitter:image" content={twitterImageUrl} />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

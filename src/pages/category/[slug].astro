@@ -1,0 +1,158 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import ArticleCard from '../../components/common/ArticleCard.astro';
+import {
+  getAllCategories,
+  getCategoryBySlug,
+  getPostsByCategorySlug,
+  getFeaturedImage,
+  getPrimaryCategory,
+  stripHtml,
+  truncateText,
+} from '../../lib/wordpress';
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories();
+  return categories.map(category => ({
+    params: { slug: category.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const category = await getCategoryBySlug(slug);
+
+if (!category) {
+  return Astro.redirect('/articles');
+}
+
+const posts = await getPostsByCategorySlug(slug, 50);
+const pageHeading = category.category_heading || category.name;
+
+const pageDescription = stripHtml(category.description || '') || `Explore ${category.name} travel guides on Sulav Yatra.`;
+const pageDescriptionHtml = category.description || `<p>${pageDescription}</p>`;
+const guideCountText = `${posts.length} ${posts.length === 1 ? 'guide' : 'guides'}`;
+
+const fallbackSeoTitle = `${category.name} in Nepal`;
+const fallbackSeoDescription = `Explore ${category.name.toLowerCase()} in Nepal with practical travel guides, local insights, and helpful ideas from Sulav Yatra.`;
+
+const seoTitle = category.seo?.seo_title || fallbackSeoTitle;
+const seoDescription = category.seo?.seo_description || fallbackSeoDescription;
+const canonical = category.seo?.canonical_url || `https://sulavyatra.com/category/${slug}`;
+const ogTitle = category.seo?.facebook_title || `${seoTitle} | Sulav Yatra`;
+const ogDescription = category.seo?.facebook_description || seoDescription;
+const ogImage = category.seo?.facebook_image || undefined;
+---
+
+<MainLayout
+  title={seoTitle}
+  description={seoDescription}
+  canonical={canonical}
+  ogTitle={ogTitle}
+  ogDescription={ogDescription}
+  ogImage={ogImage}
+>
+  <section class="hero">
+    <span class="eyebrow">Travel Category · {guideCountText}</span>
+    <h1>{pageHeading}</h1>
+    <div class="hero-description" set:html={pageDescriptionHtml} />
+  </section>
+
+  <section class="articles">
+    {posts.length === 0 ? (
+      <p>No posts found in this category.</p>
+    ) : (
+      <div class="grid">
+        {posts.map(post => (
+          <ArticleCard
+            title={post.title.rendered}
+            category={getPrimaryCategory(post)}
+            href={`/${post.slug}`}
+            excerpt={truncateText(stripHtml(post.excerpt.rendered), 140)}
+            image={getFeaturedImage(post)}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+
+  <style is:scoped>
+    .hero {
+      width: min(100% - 2rem, 1480px);
+      padding: 4.25rem 2rem 3.5rem;
+      text-align: center;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(0, 113, 186, 0.14), transparent 32%),
+        radial-gradient(circle at 85% 18%, rgba(240, 125, 0, 0.14), transparent 32%),
+        linear-gradient(180deg, #fffdf8, #f8fafc);
+      border: 1px solid rgba(229, 231, 235, 0.7);
+      border-radius: 28px;
+      margin: 2rem auto 3.25rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--color-secondary);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .hero h1 {
+      max-width: 1100px;
+      margin: 0 auto 1.25rem;
+      font-size: clamp(2.75rem, 5.5vw, 5.25rem);
+      letter-spacing: -0.045em;
+      color: var(--color-primary);
+    }
+
+    .hero-description {
+      max-width: 960px;
+      margin: 0 auto;
+      color: var(--color-text-light);
+      font-size: 1.05rem;
+      line-height: 1.85;
+    }
+
+    .hero-description :global(p) {
+      margin-bottom: 0.85rem;
+    }
+
+    .hero-description :global(p:last-child) {
+      margin-bottom: 0;
+    }
+
+    .articles {
+      padding: 0 1rem;
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    @media (max-width: 700px) {
+      .hero {
+        width: min(100% - 1rem, 1480px);
+        padding: 3.25rem 1.25rem 2.75rem;
+        margin-top: 1rem;
+        border-radius: 22px;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.35rem, 13vw, 3.4rem);
+        letter-spacing: -0.035em;
+      }
+
+      .hero-description {
+        font-size: 1rem;
+        line-height: 1.75;
+      }
+    }
+  </style>
+</MainLayout>

@@ -2,6 +2,7 @@ import type { WordPressPost } from "../types/wordpress";
 import { WORDPRESS_URL } from "./config";
 
 const WORDPRESS_API = `${WORDPRESS_URL}/wp-json/wp/v2`;
+const SULAV_YATRA_API = `${WORDPRESS_URL}/wp-json/sulav-yatra/v1`;
 
 export async function getLatestPosts(limit = 4): Promise<WordPressPost[]> {
   const response = await fetch(
@@ -13,16 +14,6 @@ export async function getLatestPosts(limit = 4): Promise<WordPressPost[]> {
   }
 
   return response.json();
-}
-
-export async function getRelatedPosts(
-  categorySlug: string,
-  currentSlug: string,
-  limit = 3,
-): Promise<WordPressPost[]> {
-  const posts = await getPostsByCategorySlug(categorySlug, limit + 4);
-
-  return posts.filter((post) => post.slug !== currentSlug).slice(0, limit);
 }
 
 export async function getAllPosts(limit = 100): Promise<WordPressPost[]> {
@@ -49,6 +40,65 @@ export async function getPostBySlug(
   const posts: WordPressPost[] = await response.json();
 
   return posts[0] || null;
+}
+
+export async function getRelatedPosts(
+  categorySlug: string,
+  currentSlug: string,
+  limit = 3,
+): Promise<WordPressPost[]> {
+  const posts = await getPostsByCategorySlug(categorySlug, limit + 4);
+
+  return posts.filter((post) => post.slug !== currentSlug).slice(0, limit);
+}
+
+export async function getCategoryBySlug(slug: string) {
+  const response = await fetch(`${SULAV_YATRA_API}/seo/category/${slug}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch category: ${slug}`);
+  }
+
+  const category = await response.json();
+
+  if (!category?.found) {
+    return null;
+  }
+
+  return category;
+}
+
+export async function getAllCategories(limit = 100) {
+  const response = await fetch(
+    `${WORDPRESS_API}/categories?per_page=${limit}&orderby=count&order=desc`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  return response.json();
+}
+
+export async function getPostsByCategorySlug(
+  slug: string,
+  limit = 3,
+): Promise<WordPressPost[]> {
+  const category = await getCategoryBySlug(slug);
+
+  if (!category) {
+    return [];
+  }
+
+  const response = await fetch(
+    `${WORDPRESS_API}/posts?categories=${category.id}&per_page=${limit}&orderby=date&order=desc&_embed`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch posts for category: ${slug}`);
+  }
+
+  return response.json();
 }
 
 export function stripHtml(html: string): string {
@@ -82,37 +132,4 @@ export function getPrimaryCategory(post: WordPressPost): string {
   const category = post._embedded?.["wp:term"]?.[0]?.[0];
 
   return category?.name || "Travel Guide";
-}
-
-export async function getCategoryBySlug(slug: string) {
-  const response = await fetch(`${WORDPRESS_API}/categories?slug=${slug}`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch category: ${slug}`);
-  }
-
-  const categories = await response.json();
-
-  return categories[0];
-}
-
-export async function getPostsByCategorySlug(
-  slug: string,
-  limit = 3,
-): Promise<WordPressPost[]> {
-  const category = await getCategoryBySlug(slug);
-
-  if (!category) {
-    return [];
-  }
-
-  const response = await fetch(
-    `${WORDPRESS_API}/posts?categories=${category.id}&per_page=${limit}&orderby=date&order=desc&_embed`,
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch posts for category: ${slug}`);
-  }
-
-  return response.json();
 }
