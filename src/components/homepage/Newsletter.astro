@@ -5,7 +5,6 @@ import Container from "../common/Container.astro";
 <section class="section newsletter">
   <Container>
     <div class="newsletter-content">
-
       <span class="eyebrow">Stay Connected</span>
 
       <h2>
@@ -18,25 +17,89 @@ import Container from "../common/Container.astro";
         from across Nepal.
       </p>
 
-      <form class="newsletter-form">
+      <form class="newsletter-form" data-newsletter-form>
         <input
           type="email"
+          name="email"
           placeholder="Enter your email address"
           aria-label="Email address"
+          autocomplete="email"
+          required
+          data-newsletter-email
         />
 
-        <button type="submit">
+        <button type="submit" data-newsletter-button>
           Subscribe
         </button>
       </form>
 
+      <p class="newsletter-message" data-newsletter-message aria-live="polite"></p>
+
       <small>
         No spam. Only useful travel content and occasional updates.
       </small>
-
     </div>
   </Container>
 </section>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  const form = document.querySelector<HTMLFormElement>("[data-newsletter-form]");
+  const emailInput = document.querySelector<HTMLInputElement>("[data-newsletter-email]");
+  const button = document.querySelector<HTMLButtonElement>("[data-newsletter-button]");
+  const message = document.querySelector<HTMLParagraphElement>("[data-newsletter-message]");
+
+  function setMessage(text: string, type: "success" | "error" | "info") {
+    if (!message) return;
+
+    message.textContent = text;
+    message.dataset.type = type;
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = emailInput?.value.trim().toLowerCase();
+
+    if (!email || !emailInput?.checkValidity()) {
+      setMessage("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Subscribing...";
+    }
+
+    setMessage("Adding you to the Sulav Yatra newsletter...", "info");
+
+    const { error } = await supabase.from("newsletter_subscribers").insert({
+      email,
+      source: "homepage",
+      metadata: {
+        page: window.location.pathname,
+      },
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        setMessage("You are already subscribed. Thank you for staying connected with Sulav Yatra.", "success");
+        form.reset();
+      } else {
+        setMessage("Something went wrong. Please try again in a moment.", "error");
+      }
+    } else {
+      setMessage("Thank you for subscribing. We’ll send useful Nepal travel stories and updates.", "success");
+      form.reset();
+    }
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Subscribe";
+    }
+  });
+</script>
 
 <style>
   .newsletter {
@@ -88,6 +151,36 @@ import Container from "../common/Container.astro";
     color: white;
     font-weight: 600;
     cursor: pointer;
+    transition: var(--transition-fast);
+  }
+
+  .newsletter-form button:hover:not(:disabled) {
+    background: var(--color-secondary);
+    transform: translateY(-1px);
+  }
+
+  .newsletter-form button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .newsletter-message {
+    min-height: 1.5rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .newsletter-message[data-type="success"] {
+    color: #047857;
+  }
+
+  .newsletter-message[data-type="error"] {
+    color: #b91c1c;
+  }
+
+  .newsletter-message[data-type="info"] {
+    color: var(--color-text-light);
   }
 
   small {
